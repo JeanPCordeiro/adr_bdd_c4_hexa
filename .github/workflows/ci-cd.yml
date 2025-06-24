@@ -10,7 +10,7 @@ on:
       environment:
         description: 'Environnement de déploiement'
         required: true
-        default: 'staging'
+        default: 'production'
         type: choice
         options:
         - staging
