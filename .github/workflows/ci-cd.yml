@@ -5,10 +5,28 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environnement de déploiement'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      target:
+        description: 'Cible de déploiement'
+        required: true
+        default: 'lambda'
+        type: choice
+        options:
+        - fargate
+        - lambda
 
 env:
   NODE_VERSION: '20.x'
-  AWS_REGION: 'us-east-1'
+  AWS_REGION: 'eu-west-1'
 
 jobs:
   test:
@@ -67,6 +85,7 @@ jobs:
   security:
     name: Audit de sécurité
     runs-on: ubuntu-latest
+    needs: [test, lint] # Ajout de la dépendance aux jobs test et lint
     
     steps:
     - name: Checkout du code
@@ -234,7 +253,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [test, lint]
     if: github.event_name == 'workflow_dispatch'
-    environment: ${{ github.event.inputs.environment }}-${{ github.event.inputs.target }}
+    environment: ${{ github.event.inputs.environment }} # Correction: Utilisation d'un environnement statique
     
     steps:
     - name: Checkout du code
@@ -269,24 +288,4 @@ jobs:
         echo "   - Cible: ${{ github.event.inputs.target }}"
         echo "   - Commit: ${{ github.sha }}"
 
-# Configuration pour le déclenchement manuel
-on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environnement de déploiement'
-        required: true
-        default: 'staging'
-        type: choice
-        options:
-        - staging
-        - production
-      target:
-        description: 'Cible de déploiement'
-        required: true
-        default: 'fargate'
-        type: choice
-        options:
-        - fargate
-        - lambda
 
