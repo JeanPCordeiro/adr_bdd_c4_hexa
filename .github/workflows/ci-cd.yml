@@ -8,7 +8,7 @@ on:
 
 env:
   NODE_VERSION: '20.x'
-  AWS_REGION: 'eu-west-1'
+  AWS_REGION: 'us-east-1'
 
 jobs:
   test:

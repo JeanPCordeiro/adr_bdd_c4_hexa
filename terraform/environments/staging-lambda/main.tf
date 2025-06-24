@@ -6,7 +6,7 @@ terraform {
   backend "s3" {
     bucket = "fizzbuzz-terraform-state-staging-lambda"
     key    = "staging-lambda/terraform.tfstate"
-    region = "eu-west-1"
+    region = "us-east-1"
   }
   
   required_providers {
@@ -39,7 +39,7 @@ provider "aws" {
 variable "aws_region" {
   description = "Région AWS"
   type        = string
-  default     = "eu-west-1"
+  default     = "us-east-1"
 }
 
 # Module Lambda

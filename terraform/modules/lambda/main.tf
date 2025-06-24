@@ -228,12 +228,12 @@ resource "aws_lambda_alias" "app" {
 }
 
 # Auto Scaling pour Lambda (Provisioned Concurrency si nécessaire)
-resource "aws_lambda_provisioned_concurrency_config" "app" {
-  count                             = var.environment == "production" ? 1 : 0
-  function_name                     = aws_lambda_function.app.function_name
-  provisioned_concurrent_executions = 2
-  qualifier                         = aws_lambda_alias.app.name
-}
+#resource "aws_lambda_provisioned_concurrency_config" "app" {
+#  count                             = var.environment == "production" ? 1 : 0
+#  function_name                     = aws_lambda_function.app.function_name
+#  provisioned_concurrent_executions = 2
+#  qualifier                         = aws_lambda_alias.app.name
+#}
 
 # CloudWatch Alarms pour monitoring
 resource "aws_cloudwatch_metric_alarm" "lambda_errors" {

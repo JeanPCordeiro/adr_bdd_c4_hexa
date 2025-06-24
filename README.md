@@ -155,12 +155,12 @@ Le **domaine** et l'**application** restent identiques :
 
 ### Fargate (via ALB)
 ```
-https://fizzbuzz-staging-alb-xxx.eu-west-1.elb.amazonaws.com/
+https://fizzbuzz-staging-alb-xxx.us-east-1.elb.amazonaws.com/
 ```
 
 ### Lambda (via API Gateway)
 ```
-https://xxx.execute-api.eu-west-1.amazonaws.com/staging/
+https://xxx.execute-api.us-east-1.amazonaws.com/staging/
 ```
 
 ### Endpoints disponibles

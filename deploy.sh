@@ -25,7 +25,7 @@ show_help() {
     echo "  $0 production lambda        # production + lambda"
     echo ""
     echo "Variables d'environnement:"
-    echo "  AWS_REGION                  # Région AWS (défaut: eu-west-1)"
+    echo "  AWS_REGION                  # Région AWS (défaut: us-east-1)"
 }
 
 # Gestion des arguments d'aide
@@ -36,7 +36,7 @@ fi
 
 ENVIRONMENT=${1:-staging}
 TARGET=${2:-fargate}
-AWS_REGION=${AWS_REGION:-eu-west-1}
+AWS_REGION=${AWS_REGION:-us-east-1}
 APP_NAME="fizzbuzz"
 
 echo "🚀 Déploiement de l'API FizzBuzz"
@@ -233,7 +233,7 @@ show_help() {
     echo "  $0 production lambda        # production + lambda"
     echo ""
     echo "Variables d'environnement:"
-    echo "  AWS_REGION                  # Région AWS (défaut: eu-west-1)"
+    echo "  AWS_REGION                  # Région AWS (défaut: us-east-1)"
 }
 
 # Gestion des arguments d'aide

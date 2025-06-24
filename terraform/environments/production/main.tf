@@ -6,7 +6,7 @@ terraform {
   backend "s3" {
     bucket = "fizzbuzz-terraform-state-production"
     key    = "production/terraform.tfstate"
-    region = "eu-west-1"
+    region = "us-east-1"
   }
   
   required_providers {
@@ -34,7 +34,7 @@ provider "aws" {
 variable "aws_region" {
   description = "Région AWS"
   type        = string
-  default     = "eu-west-1"
+  default     = "us-east-1"
 }
 
 variable "container_image" {
