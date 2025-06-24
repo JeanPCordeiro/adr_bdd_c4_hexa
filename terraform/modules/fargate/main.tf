@@ -127,7 +127,7 @@ resource "aws_lb" "app" {
 resource "aws_lb_target_group" "app" {
   name        = "${local.name_prefix}-tg"
   port        = var.container_port
-  protocol    = "HTTP"
+  protocol    = "HTTPS"
   vpc_id      = var.vpc_id
   target_type = "ip"
   
@@ -138,7 +138,7 @@ resource "aws_lb_target_group" "app" {
     matcher             = "200"
     path                = "/api/health"
     port                = "traffic-port"
-    protocol            = "HTTP"
+    protocol            = "HTTPS"
     timeout             = 5
     unhealthy_threshold = 2
   }
