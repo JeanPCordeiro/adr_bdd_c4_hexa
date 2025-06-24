@@ -9,7 +9,7 @@ class FizzBuzzLambdaAdapter {
   // Handler principal pour AWS Lambda
   async handler(event, context) {
     try {
-      console.log('Event reçu:', JSON.stringify(event, null, 2));
+      //console.log('Event reçu:', JSON.stringify(event, null, 2));
       
       // Gestion des différents types d'événements (API Gateway, ALB, etc.)
       const request = this.parseEvent(event);
@@ -69,7 +69,7 @@ class FizzBuzzLambdaAdapter {
     // Événement direct (pour les tests)
     return {
       method: event.method || 'GET',
-      path: event.path || '/',
+      path: event.requestContext.http.path || '/',
       pathParameters: event.pathParameters || {},
       queryStringParameters: event.queryStringParameters || {},
       body: event.body || null,
@@ -95,7 +95,6 @@ class FizzBuzzLambdaAdapter {
   // Traite la requête et retourne une réponse
   async processRequest(request) {
     const { method, path, pathParameters, queryStringParameters, body, headers } = request;
-    
     // Route de santé
     if (path === '/api/health' || path === '/health') {
       return {
