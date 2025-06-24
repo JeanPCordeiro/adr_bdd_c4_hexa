@@ -217,7 +217,8 @@ jobs:
   deploy-production-lambda:
     name: Déploiement production (Lambda)
     runs-on: ubuntu-latest
-    needs: [deploy-staging-lambda]
+    : # needs: [deploy-staging-lambda]
+    needs: [security]
     if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[lambda]')
     environment: production-lambda
     
