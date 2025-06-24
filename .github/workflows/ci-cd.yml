@@ -175,7 +175,7 @@ jobs:
   deploy-production-fargate:
     name: Déploiement production (Fargate)
     runs-on: ubuntu-latest
-    needs: [deploy-staging-fargate]
+    needs: [security]
     if: github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[lambda]')
     environment: production-fargate
     
