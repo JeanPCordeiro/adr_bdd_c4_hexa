@@ -1,0 +1,12 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+TITLE Diagramme de Contexte du Système - API FizzBuzz
+
+Person(user, "Utilisateur", "Personne interagissant avec l'API FizzBuzz")
+System(fizzbuzz_api, "API FizzBuzz", "API REST qui calcule la séquence FizzBuzz pour un nombre donné.")
+
+Rel(user, fizzbuzz_api, "Utilise")
+
+@enduml
+

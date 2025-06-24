@@ -1,0 +1,28 @@
+{
+  "name": "fizzbuzz-api",
+  "version": "1.0.0",
+  "description": "API FizzBuzz avec architecture hexagonale et déploiement serverless sur AWS Fargate.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "echo 'ESLint non configuré pour cette démo'",
+    "start": "node src/index.js"
+  },
+  "keywords": [
+    "fizzbuzz",
+    "api",
+    "nodejs",
+    "hexagonal-architecture",
+    "serverless",
+    "fargate"
+  ],
+  "author": "Manus AI",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

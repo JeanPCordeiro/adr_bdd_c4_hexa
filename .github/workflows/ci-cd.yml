@@ -1,0 +1,292 @@
+name: CI/CD Pipeline - FizzBuzz API (Fargate/Lambda)
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '20.x'
+  AWS_REGION: 'eu-west-1'
+
+jobs:
+  test:
+    name: Tests unitaires et BDD
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout du code
+      uses: actions/checkout@v4
+      
+    - name: Configuration de Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Installation des dépendances
+      run: npm ci
+      
+    - name: Exécution des tests unitaires
+      run: npm test
+      
+    - name: Vérification de la couverture de code
+      run: npm run test:coverage
+      continue-on-error: true
+      
+    - name: Upload des résultats de couverture
+      uses: codecov/codecov-action@v4
+      if: success()
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+
+  lint:
+    name: Analyse statique du code
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout du code
+      uses: actions/checkout@v4
+      
+    - name: Configuration de Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Installation des dépendances
+      run: npm ci
+      
+    - name: Analyse ESLint
+      run: npm run lint
+      continue-on-error: true
+
+  security:
+    name: Audit de sécurité
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout du code
+      uses: actions/checkout@v4
+      
+    - name: Configuration de Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Installation des dépendances
+      run: npm ci
+      
+    - name: Audit de sécurité npm
+      run: npm audit --audit-level moderate
+      
+    - name: Analyse de sécurité avec Snyk
+      uses: snyk/actions/node@master
+      continue-on-error: true
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  deploy-staging-fargate:
+    name: Déploiement staging (Fargate)
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging-fargate
+    
+    steps:
+    - name: Checkout du code
+      uses: actions/checkout@v4
+      
+    - name: Configuration des credentials AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+        
+    - name: Installation de Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.0
+        
+    - name: Configuration de Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Déploiement sur AWS Fargate (Staging)
+      run: |
+        chmod +x ./deploy.sh
+        ./deploy.sh staging fargate
+        
+    - name: Notification de déploiement
+      if: success()
+      run: |
+        echo "✅ Déploiement staging Fargate réussi pour le commit ${{ github.sha }}"
+
+  deploy-staging-lambda:
+    name: Déploiement staging (Lambda)
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    if: github.ref == 'refs/heads/develop' && contains(github.event.head_commit.message, '[lambda]')
+    environment: staging-lambda
+    
+    steps:
+    - name: Checkout du code
+      uses: actions/checkout@v4
+      
+    - name: Configuration des credentials AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+        
+    - name: Installation de Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.0
+        
+    - name: Déploiement sur AWS Lambda (Staging)
+      run: |
+        chmod +x ./deploy.sh
+        ./deploy.sh staging lambda
+        
+    - name: Notification de déploiement
+      if: success()
+      run: |
+        echo "✅ Déploiement staging Lambda réussi pour le commit ${{ github.sha }}"
+
+  deploy-production-fargate:
+    name: Déploiement production (Fargate)
+    runs-on: ubuntu-latest
+    needs: [deploy-staging-fargate]
+    if: github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[lambda]')
+    environment: production-fargate
+    
+    steps:
+    - name: Checkout du code
+      uses: actions/checkout@v4
+      
+    - name: Configuration des credentials AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+        
+    - name: Installation de Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.0
+        
+    - name: Configuration de Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Déploiement sur AWS Fargate (Production)
+      run: |
+        chmod +x ./deploy.sh
+        ./deploy.sh production fargate
+        
+    - name: Notification de déploiement réussi
+      if: success()
+      run: |
+        echo "🎉 Déploiement production Fargate réussi pour le commit ${{ github.sha }}"
+
+  deploy-production-lambda:
+    name: Déploiement production (Lambda)
+    runs-on: ubuntu-latest
+    needs: [deploy-staging-lambda]
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[lambda]')
+    environment: production-lambda
+    
+    steps:
+    - name: Checkout du code
+      uses: actions/checkout@v4
+      
+    - name: Configuration des credentials AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+        
+    - name: Installation de Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.0
+        
+    - name: Déploiement sur AWS Lambda (Production)
+      run: |
+        chmod +x ./deploy.sh
+        ./deploy.sh production lambda
+        
+    - name: Notification de déploiement réussi
+      if: success()
+      run: |
+        echo "🎉 Déploiement production Lambda réussi pour le commit ${{ github.sha }}"
+
+  # Job pour déploiement manuel avec choix de cible
+  deploy-manual:
+    name: Déploiement manuel
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    if: github.event_name == 'workflow_dispatch'
+    environment: ${{ github.event.inputs.environment }}-${{ github.event.inputs.target }}
+    
+    steps:
+    - name: Checkout du code
+      uses: actions/checkout@v4
+      
+    - name: Configuration des credentials AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+        
+    - name: Installation de Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.0
+        
+    - name: Configuration de Docker Buildx (si Fargate)
+      if: github.event.inputs.target == 'fargate'
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Déploiement
+      run: |
+        chmod +x ./deploy.sh
+        ./deploy.sh ${{ github.event.inputs.environment }} ${{ github.event.inputs.target }}
+        
+    - name: Notification de déploiement
+      if: success()
+      run: |
+        echo "✅ Déploiement manuel réussi:"
+        echo "   - Environnement: ${{ github.event.inputs.environment }}"
+        echo "   - Cible: ${{ github.event.inputs.target }}"
+        echo "   - Commit: ${{ github.sha }}"
+
+# Configuration pour le déclenchement manuel
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environnement de déploiement'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      target:
+        description: 'Cible de déploiement'
+        required: true
+        default: 'fargate'
+        type: choice
+        options:
+        - fargate
+        - lambda
+

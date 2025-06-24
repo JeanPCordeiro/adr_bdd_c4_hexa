@@ -1,0 +1,17 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+TITLE Diagramme de Conteneurs - API FizzBuzz
+
+Person(user, "Utilisateur", "Personne interagissant avec l\'API FizzBuzz")
+
+System_Boundary(fizzbuzz_api_system, "API FizzBuzz") {
+    Container(api_gateway, "API Gateway", "AWS API Gateway", "Expose l\'API REST au monde extérieur.")
+    Container(fargate_app, "Application FizzBuzz", "Node.js sur AWS Fargate", "Contient la logique métier FizzBuzz et l\'implémentation de l\'API.")
+}
+
+Rel(user, api_gateway, "Fait des requêtes HTTP(S) à")
+Rel(api_gateway, fargate_app, "Transmet les requêtes à")
+
+@enduml
+

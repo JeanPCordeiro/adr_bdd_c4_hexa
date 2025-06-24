@@ -1,0 +1,25 @@
+
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+TITLE Diagramme de Composants - Application FizzBuzz (Architecture Hexagonale)
+
+Container_Boundary(fargate_app, "Application FizzBuzz (Node.js sur AWS Fargate)") {
+
+    Component(api_adapter, "API Adapter", "REST Controller", "Expose les endpoints HTTP et adapte les requêtes entrantes au port d'application.")
+    Component(application_port, "Application Port", "Interface", "Définit les opérations que l'application peut effectuer (ex: calculer FizzBuzz).")
+    Component(application_service, "Application Service", "Service", "Implémente la logique d'orchestration et utilise le domaine.")
+    Component(domain_model, "Domain Model", "Entité/Valeur", "Contient la logique métier pure de FizzBuzz.")
+    Component(persistence_port, "Persistence Port", "Interface", "Définit les opérations de persistance (non utilisé pour FizzBuzz, mais inclus pour l'exemple).")
+    Component(persistence_adapter, "Persistence Adapter", "Implémentation (ex: Base de données)", "Implémente le port de persistance (non utilisé pour FizzBuzz).")
+
+    Rel(api_adapter, application_port, "Appelle", "via")
+    Rel(application_service, domain_model, "Utilise")
+    Rel(application_service, persistence_port, "Utilise", "si nécessaire")
+    Rel(persistence_adapter, persistence_port, "Implémente")
+    Rel(application_port, application_service, "Implémenté par")
+
+}
+
+@enduml
+
